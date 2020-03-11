@@ -9,15 +9,9 @@ const path = require('path')
 // Mock database
 const { countries, cities } = require('./data.js')
 
-// (4) TODO
-// const routes = require('./routes.js')
-
 // `app.use` is a method to configure middleware
 app.use(morgan('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
-
-// (7) TODO (AFTER BODY PARSER SLIDES)
-app.use(express.urlencoded({ extended: false }))
 
 // Our current routes that will be copied/pasted into routes.js
 app.get('/', (req, res, next) => {
@@ -111,38 +105,6 @@ app.get('/cities/:cityName', (req, res, next) => {
   `)
 })
 
-// (8) TODO (demo with Postman)
-app.post('/cities', (req, res, next) => {
-  console.log('req.body -->', req.body)
-  res.send(`Got data from form: ${req.body.cityName}, ${req.body.countryName}`)
-})
-
-// IGNORE
-// app.get('/cities/new', (req, res, next) => {
-//   res.send(`
-//   <html>
-//     <head>
-//       <title>demo-express-routing</title>
-//     </head>
-//     <body>
-//       <h2>Add a new city:</h2>
-//       <form method="post" action="/cities">
-//         City: <input type="text" name="cityName" /><br/>
-//         Country: <input type="text" name="countryName" /><br/>
-//         <button type="submit">Submit</button>
-//       </form>
-//     </body>
-//   </html>
-//   `)
-// })
-// IGNORE END
-
-// (5) TODO
-// app.use(routes)
-
-// (6) TODO (further granularity)
-// app.use('/countries', require('./countriesRouter.js'))
-// app.use('/cities', require('./citiesRouter.js'))
 
 // Not found route
 app.use((req, res) => {
