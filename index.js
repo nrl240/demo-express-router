@@ -6,12 +6,13 @@ const morgan = require('morgan')
 // path (safer to use absolute path of directory to serve)
 const path = require('path')
 
-// Mock database
-const { countries, cities } = require('./data.js')
+const countriesRoutes = require('./countriesRoutes')
+const citiesRoutes = require('./citiesRoutes')
 
 // `app.use` is a method to configure middleware
 app.use(morgan('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.urlencoded({ extended: false })) // body parsing data
 
 // Our current routes that will be copied/pasted into routes.js
 app.get('/', (req, res, next) => {
@@ -31,80 +32,8 @@ app.get('/', (req, res, next) => {
   `)
 })
 
-app.get('/countries', (req, res, next) => {
-
-  // res.send(countries) // demo JSON then comment out
-
-  const countriesList = countries.map(country => (
-    `<li><a href="/countries/${country.name}">${country.name}</a></li>`
-  )).join('')
-
-  res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Countries</h2>
-        <ul>
-          ${countriesList}
-        </ul>
-        <a href="/">Home</a>
-      </body>
-    </html>
-  `)
-})
-
-app.get('/countries/:countryName', (req, res, next) => {
-  const { countryName } = req.params
-  const countryLink = `
-    <a href="/countries/${countryName}/cities">${countryName}</a>
-  `
-  res.send(`Explore ${countryLink}'s cities!`)
-})
-
-app.get('/countries/:countryName/cities', (req, res, next) => {
-  const { countryName } = req.params
-
-  const country = countries.filter(country => country.name === countryName)[0]
-  const citiesList = country.cities.map(city => (
-      `<li><a href="/cities/${city}">${city}</a></li>`
-    ))
-    .join('')
-
-  res.send(citiesList)
-})
-
-app.get('/cities', (req, res, next) => {
-  const citiesList = cities.map(city => (
-    `<li><a href="/cities/${city.name}">${city.name}</a></li>`
-  )).join('')
-
-  res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Cities</h2>
-        <ul>
-          ${citiesList}
-        </ul>
-        <a href="/">Home</a>
-      </body>
-    </html>
-  `)
-})
-
-app.get('/cities/:cityName', (req, res, next) => {
-  // const { cityName } = req.params
-  res.send(`
-    Explore ${req.params.cityName}!
-    <br/><br/>
-    <a href="/">Home</a>
-  `)
-})
-
+app.use('/countries', countriesRoutes)
+app.use('/cities', citiesRoutes)
 
 // Not found route
 app.use((req, res) => {
