@@ -1,154 +1,114 @@
-// express.js (our Node framework)
-const express = require('express')
-const app = express()
-// morgan (HTTP request logger middleware)
-const morgan = require('morgan')
-// path (safer to use absolute path of directory to serve)
-const path = require('path')
+const express = require('express') // Node web framework for handling HTTP requests
+const morgan = require('morgan') // logging middleware
+const path = require('path') // provides utilities for working with file and directory paths
 
-// Mock database
-const { countries, cities } = require('./data.js')
+const app = express() // creates an Express application
 
-// (4) TODO
-// const routes = require('./routes.js')
+const client = require('./db')
 
-// `app.use` is a method to configure middleware
 app.use(morgan('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
 
-// (7) TODO (AFTER BODY PARSER SLIDES)
-app.use(express.urlencoded({ extended: false }))
+app.use(express.json()) // raw json req.body
+app.use(express.urlencoded({ extended: false })) // x-www-form-urlencoded req.body
 
-// Our current routes that will be copied/pasted into routes.js
-app.get('/', (req, res, next) => {
-  res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Travel Guides</h2>
-        <ul>
-          <li><a href="/countries">Countries</a></li>
-          <li><a href="/cities">Cities</a></li>
-        </ul>
-      </body>
-    </html>
-  `)
+app.get('/countries', async (req, res, next) => {
+  try {
+    const { rows: countries } = await client.query(`
+      SELECT * FROM countries;
+    `) // https://wesbos.com/destructuring-renaming
+    res.send(countries)
+  } catch(err) {
+    next()
+  }
 })
 
-app.get('/countries', (req, res, next) => {
-
-  // res.send(countries) // demo JSON then comment out
-
-  const countriesList = countries.map(country => (
-    `<li><a href="/countries/${country.name}">${country.name}</a></li>`
-  )).join('')
-
-  res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Countries</h2>
-        <ul>
-          ${countriesList}
-        </ul>
-        <a href="/">Home</a>
-      </body>
-    </html>
-  `)
+app.get('/cities', async (req, res, next) => {
+  try {
+    const { rows: cities } = await client.query(`
+      SELECT ci.id, ci.name AS city, co.name AS country
+      FROM cities AS ci
+      JOIN countries AS co ON ci.country_id = co.id;
+    `) // https://wesbos.com/destructuring-renaming
+    res.send(cities)
+  } catch(err) {
+    next()
+  }
 })
 
-app.get('/countries/:countryName', (req, res, next) => {
+app.get('/countries/:countryName', async (req, res, next) => {
   const { countryName } = req.params
-  const countryLink = `
-    <a href="/countries/${countryName}/cities">${countryName}</a>
-  `
-  res.send(`Explore ${countryLink}'s cities!`)
+  try {
+    const { rows: country } = await client.query({
+      name: 'fetch-country',
+      text: 'SELECT * FROM countries WHERE name = $1;',
+      values: [countryName]
+    }) // https://wesbos.com/destructuring-renaming
+    res.send(country)
+  } catch(err) {
+    next()
+  }
 })
 
-app.get('/countries/:countryName/cities', (req, res, next) => {
+app.get('/cities/:cityName', async (req, res, next) => {
+  const { cityName } = req.params
+  try {
+    const { rows: city } = await client.query({
+      name: 'fetch-city',
+      text: `
+        SELECT ci.id, ci.name AS city, co.name AS country
+        FROM cities AS ci
+        JOIN countries AS co ON ci.country_id = co.id
+        WHERE ci.name = $1;
+      `,
+      values: [cityName]
+    }) // https://wesbos.com/destructuring-renaming
+    res.send(city)
+  } catch(err) {
+    next()
+  }
+})
+
+
+app.get('/countries/:countryName/cities', async (req, res, next) => {
   const { countryName } = req.params
-
-  const country = countries.filter(country => country.name === countryName)[0]
-  const citiesList = country.cities.map(city => (
-      `<li><a href="/cities/${city}">${city}</a></li>`
-    ))
-    .join('')
-
-  res.send(citiesList)
+  try {
+    const { rows: country } = await client.query({
+      name: 'fetch-country',
+      text: `
+        SELECT co.name AS country, ci.id AS city_id, ci.name AS city
+        FROM countries AS co
+        JOIN cities AS ci ON co.id = ci.country_id
+        WHERE co.name = $1
+      `,
+      values: [countryName]
+    }) // https://wesbos.com/destructuring-renaming
+    res.send(country)
+  } catch(err) {
+    next()
+  }
 })
 
-app.get('/cities', (req, res, next) => {
-  const citiesList = cities.map(city => (
-    `<li><a href="/cities/${city.name}">${city.name}</a></li>`
-  )).join('')
-
-  res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Cities</h2>
-        <ul>
-          ${citiesList}
-        </ul>
-        <a href="/">Home</a>
-      </body>
-    </html>
-  `)
-})
-
-app.get('/cities/:cityName', (req, res, next) => {
-  // const { cityName } = req.params
-  res.send(`
-    Explore ${req.params.cityName}!
-    <br/><br/>
-    <a href="/">Home</a>
-  `)
-})
-
-// (8) TODO (demo with Postman)
 app.post('/cities', (req, res, next) => {
-  console.log('req.body -->', req.body)
-  res.send(`Got data from form: ${req.body.cityName}, ${req.body.countryName}`)
+  console.log(req.body)
+  // ... create city in database...
+  res.send(`
+    Got data from form: ${req.body.cityName}, ${req.body.countryName}
+  `)
 })
 
-// IGNORE
-// app.get('/cities/new', (req, res, next) => {
-//   res.send(`
-//   <html>
-//     <head>
-//       <title>demo-express-routing</title>
-//     </head>
-//     <body>
-//       <h2>Add a new city:</h2>
-//       <form method="post" action="/cities">
-//         City: <input type="text" name="cityName" /><br/>
-//         Country: <input type="text" name="countryName" /><br/>
-//         <button type="submit">Submit</button>
-//       </form>
-//     </body>
-//   </html>
-//   `)
-// })
-// IGNORE END
-
-// (5) TODO
-// app.use(routes)
-
-// (6) TODO (further granularity)
-// app.use('/countries', require('./countriesRouter.js'))
-// app.use('/cities', require('./citiesRouter.js'))
-
-// Not found route
-app.use((req, res) => {
-  res.status(404).send(`
-    <h2>You look lost... go <a href="/">home</a>.</h2>
+app.post('/countries', (req, res, next) => {
+  console.log(req.body)
+  // ... create country in database...
+  res.send(`
+    Got data from form: ${req.body.countryName}
   `)
+})
+
+
+// Error handling: Route doesn't exist, send 404
+app.use((req, res) => {
+  res.status(404).send('The route does not exist.')
 })
 
 app.listen(3000, (err) => {

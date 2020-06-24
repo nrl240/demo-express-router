@@ -1,18 +1,20 @@
 {
-  "name": "demo-express-router",
+  "name": "demo-router",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node_modules/.bin/nodemon app.js",
+    "seed": "psql -d countries -a -f ./seed.sql"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "path": "^0.12.7"
+    "pg": "^8.2.1"
   },
   "devDependencies": {
-    "morgan": "^1.9.1"
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.4"
   }
 }
