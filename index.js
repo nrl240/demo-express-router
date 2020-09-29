@@ -13,26 +13,19 @@ const { countries, cities } = require('./data.js')
 app.use(morgan('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
 
-// Our current routes that will be copied/pasted into routes.js
+// GET /
 app.get('/', (req, res, next) => {
   res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Travel Guides</h2>
-        <ul>
-          <li><a href="/countries">Countries</a></li>
-          <li><a href="/cities">Cities</a></li>
-        </ul>
-      </body>
-    </html>
+    <h1>Travel Guides</h1>
+    <ul>
+      <li><a href="/countries">Countries</a></li>
+      <li><a href="/cities">Cities</a></li>
+    </ul>
   `)
 })
 
+// GET /countries
 app.get('/countries', (req, res, next) => {
-
   // res.send(countries) // demo JSON then comment out
 
   const countriesList = countries.map(country => (
@@ -40,29 +33,30 @@ app.get('/countries', (req, res, next) => {
   )).join('')
 
   res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Countries</h2>
-        <ul>
-          ${countriesList}
-        </ul>
-        <a href="/">Home</a>
-      </body>
-    </html>
+    <h2>Countries</h2>
+    <ul>
+      ${countriesList}
+    </ul>
+    <br/><br/>
+    <a href="/">Home</a>
   `)
 })
 
+// GET /countries/:countryName
 app.get('/countries/:countryName', (req, res, next) => {
   const { countryName } = req.params
-  const countryLink = `
-    <a href="/countries/${countryName}/cities">${countryName}</a>
+  const exploreCountryLink = `
+    <a href="/countries/${countryName}/cities">Explore ${countryName} Cities!</a>
   `
-  res.send(`Explore ${countryLink}'s cities!`)
+  res.send(`
+    <h2>${exploreCountryLink}</h2>
+    <p>It's such a beautiful country!</p>
+    <br/><br/>
+    <a href="/countries">Back</a> | <a href="/">Home</a>
+  `)
 })
 
+// GET /countries/:countryName/cities
 app.get('/countries/:countryName/cities', (req, res, next) => {
   const { countryName } = req.params
 
@@ -72,41 +66,44 @@ app.get('/countries/:countryName/cities', (req, res, next) => {
     ))
     .join('')
 
-  res.send(citiesList)
-})
-
-app.get('/cities', (req, res, next) => {
-  const citiesList = cities.map(city => (
-    `<li><a href="/cities/${city.name}">${city.name}</a></li>`
-  )).join('')
-
   res.send(`
-    <html>
-      <head>
-        <title>demo-express-routing</title>
-      </head>
-      <body>
-        <h2>Cities</h2>
-        <ul>
-          ${citiesList}
-        </ul>
-        <a href="/">Home</a>
-      </body>
-    </html>
+    <h2>${countryName}'s Cities</h2>
+    ${citiesList}
+    <br/><br/>
+    <a href="/countries/${countryName}">Back</a> | <a href="/">Home</a>
   `)
 })
 
-app.get('/cities/:cityName', (req, res, next) => {
-  // const { cityName } = req.params
+// GET /cities
+app.get('/cities', (req, res, next) => {
+  const citiesList = cities.map(city => (
+    `<li>
+      <a href="/cities/${city.name}">${city.name}</a>
+    </li>
+  `)).join('')
+
   res.send(`
-    Explore ${req.params.cityName}!
+    <h2>Cities</h2>
+    <ul>
+      ${citiesList}
+    </ul>
     <br/><br/>
     <a href="/">Home</a>
   `)
 })
 
+// GET /cities/:cityName
+app.get('/cities/:cityName', (req, res, next) => {
+  // const { cityName } = req.params
+  res.send(`
+    <h2>Explore ${req.params.cityName}!</h2>
+    <p>It's such a beautiful city!</p>
+    <br/><br/>
+    <a href="/cities">Back</a> | <a href="/">Home</a>
+  `)
+})
 
-// Not found route
+// 404 Handler
 app.use((req, res) => {
   res.status(404).send(`
     <h2>You look lost... go <a href="/">home</a>.</h2>
