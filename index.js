@@ -13,6 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json()); // raw json req.body
 app.use(express.urlencoded({ extended: false })); // x-www-form-urlencoded req.body
 
+// GET /api/countries
 app.get('/api/countries', async (req, res, next) => {
   try {
     const { rows: countries } = await client.query(`
@@ -20,89 +21,116 @@ app.get('/api/countries', async (req, res, next) => {
     `); // https://wesbos.com/destructuring-renaming
     res.send(countries);
   } catch (err) {
-    next();
+    next(err);
   }
 });
 
+// GET /api/cities
 app.get('/api/cities', async (req, res, next) => {
   try {
     const { rows: cities } = await client.query(`
-      SELECT ci.id, ci.name AS city, co.name AS country
+      SELECT ci.id,
+             ci.name AS city,
+             co.name AS country
       FROM cities AS ci
-      JOIN countries AS co ON ci.country_id = co.id;
+      JOIN countries AS co
+        ON ci.country_id = co.id;
     `); // https://wesbos.com/destructuring-renaming
     res.send(cities);
   } catch (err) {
-    next();
+    next(err);
   }
 });
 
-app.get('/api/countries/:countryName/cities', async (req, res, next) => {
-  const { countryName } = req.params;
+// GET /api/countries/:id/cities
+app.get('/api/countries/:id/cities', async (req, res, next) => {
+  const { id } = req.params;
   try {
-    const { rows: country } = await client.query({
-      name: 'fetch-country',
+    const { rows: cities } = await client.query({
+      name: 'fetch-country-cities',
       text: `
-        SELECT co.name AS country, ci.id AS city_id, ci.name AS city
+        SELECT co.name AS country,
+               ci.id AS city_id,
+               ci.name AS city
         FROM countries AS co
-        JOIN cities AS ci ON co.id = ci.country_id
-        WHERE lower(co.name) = $1
+        JOIN cities AS ci
+          ON co.id = ci.country_id
+        WHERE co.id = $1
       `,
-      values: [countryName]
+      values: [id]
     }); // https://wesbos.com/destructuring-renaming
-    res.send(country);
+    res.send(cities);
   } catch (err) {
-    next();
+    next(err);
   }
 });
 
-app.get('/api/countries/:countryName', async (req, res, next) => {
-  const { countryName } = req.params;
+// GET /api/countries/:id
+app.get('/api/countries/:id', async (req, res, next) => {
+  const { id } = req.params;
   try {
-    const { rows: country } = await client.query({
+    const {
+      rows: [country]
+    } = await client.query({
       name: 'fetch-country',
-      text: 'SELECT * FROM countries WHERE lower(name) = $1;',
-      values: [countryName]
+      text: 'SELECT * FROM countries WHERE id = $1;',
+      values: [id]
     }); // https://wesbos.com/destructuring-renaming
     res.send(country);
   } catch (err) {
-    next();
+    next(err);
   }
 });
 
-app.get('/api/cities/:cityName', async (req, res, next) => {
-  const { cityName } = req.params;
+// GET /api/cities/:id
+app.get('/api/cities/:id', async (req, res, next) => {
+  const { id } = req.params;
   try {
-    const { rows: city } = await client.query({
+    const {
+      rows: [city]
+    } = await client.query({
       name: 'fetch-city',
       text: `
-        SELECT ci.id, ci.name AS city, co.name AS country
+        SELECT ci.id,
+               ci.name AS city,
+               co.name AS country
         FROM cities AS ci
-        JOIN countries AS co ON ci.country_id = co.id
-        WHERE lower(ci.name) = $1;
+        JOIN countries AS co
+          ON ci.country_id = co.id
+        WHERE ci.id = $1;
       `,
-      values: [cityName]
+      values: [id]
     }); // https://wesbos.com/destructuring-renaming
     res.send(city);
   } catch (err) {
-    next();
+    next(err);
   }
 });
 
+// POST /api/cities
 app.post('/api/cities', (req, res, next) => {
-  console.log(req.body);
-  // ... create city in database...
-  res.send(`
-    Got data from form: ${req.body.cityName}, ${req.body.countryName}
-  `);
+  try {
+    console.log(req.body);
+    // ... create city in database...
+    res.send(`
+      Got data from form: ${req.body.cityName}, ${req.body.countryName}
+    `);
+  } catch (err) {
+    next(err);
+  }
 });
 
+// POST /api/countries
 app.post('/api/countries', (req, res, next) => {
-  console.log(req.body);
-  // ... create country in database...
-  res.send(`
-    Got data from form: ${req.body.countryName}
-  `);
+  try {
+    console.log(req.body);
+    // ... create country in database...
+    res.send(`
+      Got data from form: ${req.body.countryName}
+    `);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Error handling: Route doesn't exist, send 404
