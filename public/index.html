@@ -1,0 +1,54 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Express Router + REST</title>
+  </head>
+  <body>
+    <h1>Express Router + REST</h1>
+    <div>
+      <h2>Available API Endpoints</h2>
+      <h3>GET</h3>
+      <ul>
+        <li>
+          <a href="/api/countries"><strong>/api/countries</strong></a>
+        </li>
+        <li>
+          <a href="/api/cities"><strong>/api/cities</strong></a>
+        </li>
+        <li>
+          <strong>/api/countries/:countryName</strong>
+        </li>
+        <ul>
+          <li>
+            <a href="/api/countries/denmark">/api/countries/denmark</a>
+          </li>
+        </ul>
+
+        <li>
+          <strong>/api/cities/:cityName</strong>
+        </li>
+        <ul>
+          <li>
+            <a href="/api/cities/copenhagen">/api/cities/copenhagen</a>
+          </li>
+        </ul>
+
+        <li>
+          <strong>/api/countries/:countryName/cities</strong>
+        </li>
+        <ul>
+          <li>
+            <a href="/api/countries/italy/cities"
+              >/api/countries/italy/cities</a
+            >
+          </li>
+        </ul>
+      </ul>
+      <h3>POST</h3>
+      <ul>
+        <li><strong>/api/cities</strong></li>
+        <li><strong>/api/countries</strong></li>
+      </ul>
+    </div>
+  </body>
+</html>

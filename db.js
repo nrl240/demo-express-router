@@ -1,6 +1,6 @@
-const pg = require('pg')
-const client = new pg.Client('postgres://localhost/countries')
+const pg = require('pg');
+const client = new pg.Client('postgres://localhost/countries');
 
-client.connect()
+client.connect();
 
-module.exports = client
+module.exports = client;

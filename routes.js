@@ -1,7 +1,7 @@
 // [Prompt class] If we do the following first, what would be wrong with it?
 // What's wrong with initializing a new application?
-const express = require('express') // After response, comment out
-const app = express() // After response, comment out
+const express = require('express'); // After response, comment out
+const app = express(); // After response, comment out
 
 // (1) TODO
 // const router = require('express').Router()
@@ -74,8 +74,6 @@ const app = express() // After response, comment out
 
 // (3) TODO (LAST STEP)
 // module.exports = router
-
-
 
 // // Food for thought: https://stackoverflow.com/a/14934933
 // console.log('\n---- ROUTER STACK ----\n')
